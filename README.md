@@ -8,7 +8,7 @@ Uses golang as the backend, sqlite as the database, reactjs frontend.
 TODOs:
 * Better queue display (option to display old requests, fill url, delete)
 * Remember old prompts
-* Prettier frontend :P
+* Prettier frontend
 * Migrations
 * Config upload via UI
 * Healthcheck
