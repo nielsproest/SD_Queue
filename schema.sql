@@ -1,0 +1,13 @@
+CREATE TABLE stable_diffusion_queue (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	prompt TEXT NOT NULL,
+	status VARCHAR(50) DEFAULT 'pending',
+	result_url TEXT,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE stable_diffusion_config (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	data TEXT NOT NULL
+);

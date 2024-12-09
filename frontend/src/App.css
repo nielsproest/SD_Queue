@@ -1,0 +1,94 @@
+/* App.css */
+body {
+	margin: 0;
+	padding: 0;
+	font-family: Arial, sans-serif;
+	max-width: unset; /* Counter water.css max width limit */
+}
+
+.app {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	padding: 20px;
+	box-sizing: border-box;
+	width: 100%; /* Ensure full width */
+}
+
+/* Main container for Queue List and Submit Prompt */
+.main-container {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+	flex-grow: 1;
+}
+
+/* Queue List */
+.queue-list {
+	flex: 4; /* Takes 80% of the width */
+	min-width: 300px;
+}
+
+.queue-list .table-container {
+	overflow-x: auto;
+	max-height: 400px;
+	width: 100%;
+}
+
+.queue-list table {
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: auto;
+}
+
+.queue-list th,
+.queue-list td {
+	/*border: 1px solid #ccc;*/
+	padding: 8px;
+	text-align: left;
+}
+
+/* Submit Prompt */
+.submit-prompt {
+	flex: 1; /* Takes 20% of the width */
+	min-width: 500px;
+}
+
+/* Status Box */
+.status-box {
+	margin-top: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	min-height: 200px;
+}
+
+.status-box .status-details {
+	margin-bottom: 10px;
+}
+
+button {
+	padding: 5px 10px;
+	background-color: #007bff;
+	color: #fff;
+	border: none;
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+button:hover {
+	background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.main-container {
+		flex-direction: column;
+	}
+
+	.queue-list,
+	.submit-prompt {
+		flex: 1;
+		width: 100%;
+	}
+}
