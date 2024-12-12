@@ -54,7 +54,7 @@ body {
 	min-width: 500px;
 }
 
-.batch-size-group {
+.batch-count-group {
 	display: flex;
 	align-items: center;
 	gap: 5px; /* Space between label and select */
@@ -105,6 +105,26 @@ button {
 
 button:hover {
 	background-color: #0056b3;
+}
+
+.raw-json {
+	padding: 10px;
+	border-radius: 5px;
+	overflow: auto;
+	max-height: 300px;
+	word-wrap: break-word;
+	border: 1px solid #ccc;
+}
+
+.raw-json.visible {
+	opacity: 1;
+	max-height: 300px;
+}
+
+.raw-json.hidden {
+	opacity: 0;
+	max-height: 0;
+	pointer-events: none;
 }
 
 /* Responsive Design */

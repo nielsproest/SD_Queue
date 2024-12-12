@@ -79,20 +79,9 @@ export default function StatusBox() {
 					{showRaw ? "Hide Raw JSON" : "Show Raw JSON"}
 					</button>
 				</div>
-				{showRaw && (
-					<pre
-						style={{
-							padding: "10px",
-							borderRadius: "5px",
-							overflow: "auto",
-							maxHeight: "300px",
-							wordWrap: "break-word",
-							border: "1px solid #ccc"
-						}}
-					>
+				<pre className={`raw-json ${showRaw ? "visible" : "hidden"}`}>
 					{JSON.stringify(status, null, 2)}
-					</pre>
-				)}
+				</pre>
 			</div>
 			<div className="status-image">
 				<h3>Current Image:</h3>

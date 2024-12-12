@@ -15,13 +15,13 @@ import (
 )
 
 type QueueItem struct {
-	ID        int            `db:"id" json:"id"`
-	Prompt    string         `db:"prompt" json:"prompt"`
-	Status    string         `db:"status" json:"status"`
-	ResultURL sql.NullString `db:"result_url" json:"result_url"`
-	BatchSize int            `db:"batch_size" json:"batch_size"`
-	CreatedAt time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	ID         int            `db:"id" json:"id"`
+	Prompt     string         `db:"prompt" json:"prompt"`
+	Status     string         `db:"status" json:"status"`
+	ResultURL  sql.NullString `db:"result_url" json:"result_url"`
+	BatchCount int            `db:"batch_count" json:"batch_count"`
+	CreatedAt  time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt  time.Time      `db:"updated_at" json:"updated_at"`
 }
 
 var (
@@ -46,7 +46,7 @@ func main() {
 	if mp := os.Getenv("SD_URL"); mp != "" {
 		sd_url = mp
 	}
-	if mp := os.Getenv("BATCH_SIZE"); mp != "" {
+	if mp := os.Getenv("BATCH_COUNT"); mp != "" {
 		batches, _ = strconv.Atoi(mp)
 	}
 

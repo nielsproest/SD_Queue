@@ -61,18 +61,18 @@ export default function QueueList({ queue, setQueue, refreshQueue }) {
 							<th>Status</th>
 							<th>Result URL</th>
 							<th>Created At</th>
-							<th>Batch Size</th>
+							<th>Batch Count</th>
 						</tr>
 					</thead>
 					<tbody>
-						{queue.filter((item) => item.status === "pending").map((item) => (
+						{queue.filter((item) => item.status !== "done").map((item) => (
 							<tr key={item.id}>
 								<td>{item.id}</td>
 								<QueueRow item={item}/>
 								<td>{item.status}</td>
 								<td>{item.result_url ? <a href={item.result_url}>View</a> : "N/A"}</td>
 								<td>{new Date(item.created_at).toLocaleString()}</td>
-								<td>{item.batch_size}</td>
+								<td>{item.batch_count}</td>
 							</tr>
 						))}
 					</tbody>

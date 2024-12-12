@@ -5,11 +5,11 @@ import './App.css';
 export default function SubmitPrompt({ queue, addToQueue }) {
 	const [prompt, setPrompt] = useState("");
 	const [initialized, setInitialized] = useState(false); // Guard flag
-	const [batchSize, setBatchSize] = useState(1);
+	const [batchCount, setBatchCount] = useState("1");
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		axios.post("/queue", { prompt, batch_size: batchSize })
+		axios.post("/queue", { prompt, batch_count: Number(batchCount) })
 			.then(() => {
 				addToQueue({prompt: prompt});
 				//setPrompt("");
@@ -22,7 +22,9 @@ export default function SubmitPrompt({ queue, addToQueue }) {
 	// Auto-fill the prompt with the latest item from the queue on initial load
 	useEffect(() => {
 		if (!initialized && queue.length > 0) {
-			setPrompt(queue[queue.length - 1].prompt); // Use the latest prompt
+			const lastPrompt = queue[queue.length - 1];
+			setPrompt(lastPrompt.prompt); // Use the latest prompt
+			setBatchCount(lastPrompt.batch_count); // Use the latest prompt
 			setInitialized(true); // Prevent further auto-fills
 		}
 	}, [queue, initialized]); // Dependency array
@@ -38,13 +40,13 @@ export default function SubmitPrompt({ queue, addToQueue }) {
 					placeholder="Enter your prompt"
 					required
 				/>
-				<div className="batch-size-group">
-					<label htmlFor="batch_size">Batch Size:</label>
+				<div className="batch-count-group">
+					<label htmlFor="batch_count">Batch Count:</label>
 					<select
-						name="batch_size"
-						id="batch_size"
-						value={batchSize}
-						onChange={(e) => setBatchSize(Number(e.target.value))}
+						name="batch_count"
+						id="batch_count"
+						value={batchCount}
+						onChange={(e) => setBatchCount(e.target.value)}
 					>
 						<option value="1">1</option>
 						<option value="2">2</option>

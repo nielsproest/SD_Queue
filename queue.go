@@ -36,8 +36,16 @@ type ConfigItem struct {
 }
 
 func ProcessQueue2() {
+	// Im guessing its done, i dont know
+	_, err := db.Exec("UPDATE stable_diffusion_queue SET status='done' WHERE status='processing'")
+
+	if err != nil {
+		log.Fatalf("Update error %v\n", err)
+		return
+	}
+
 	queu := []QueueItem{}
-	err := db.Select(&queu, "SELECT * FROM stable_diffusion_queue WHERE status='pending'")
+	err = db.Select(&queu, "SELECT * FROM stable_diffusion_queue WHERE status='pending'")
 	// TODO: Status should be enum
 
 	if err != nil {
@@ -72,23 +80,22 @@ func handleGen(item QueueItem) error {
 	}
 
 	config["prompt"] = item.Prompt
+	config["n_iter"] = item.BatchCount
 
 	// Marshal into data
 	if jsonData, err = json.Marshal(&config); err != nil {
 		return fmt.Errorf("error marshaling JSON: %v", err)
 	}
 
-	for i := range item.BatchSize {
-		// TODO: Mark as submitted to survive restarts?
-		_, err := http.Post(sd_url+api_txt2img, "application/json", bytes.NewBuffer(jsonData))
-		if err != nil {
-			return fmt.Errorf("error unmarshaling JSON %d: %v", i, err)
-		}
+	item.Status = "processing"
+	err = updateQueueItem(item)
+	if err != nil {
+		return err
+	}
 
-		/*jsonData, err = io.ReadAll(r.Body)
-		if err != nil {
-			return fmt.Errorf("read error: %v", err)
-		}*/
+	_, err = http.Post(sd_url+api_txt2img, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("error unmarshaling JSON: %v", err)
 	}
 
 	item.Status = "done"
@@ -167,12 +174,12 @@ func handleQueue(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if item.BatchSize > batches {
-			log.Printf("WARNING: Batch size was bigger than allowed (%d > %d), clamping...\n", item.BatchSize, batches)
-			item.BatchSize = batches
+		if item.BatchCount > batches {
+			log.Printf("WARNING: Batch count was bigger than allowed (%d > %d), clamping...\n", item.BatchCount, batches)
+			item.BatchCount = batches
 		}
 
-		err := db.Get(&item, "INSERT INTO stable_diffusion_queue (prompt, batch_size) VALUES ($1, $2) RETURNING *", item.Prompt, item.BatchSize)
+		err := db.Get(&item, "INSERT INTO stable_diffusion_queue (prompt, batch_count) VALUES ($1, $2) RETURNING *", item.Prompt, item.BatchCount)
 		if err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			log.Printf("Database error %v\n", err)
