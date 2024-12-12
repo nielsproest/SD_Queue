@@ -54,17 +54,44 @@ body {
 	min-width: 500px;
 }
 
+.batch-size-group {
+	display: flex;
+	align-items: center;
+	gap: 5px; /* Space between label and select */
+}
+
 /* Status Box */
 .status-box {
 	margin-top: 20px;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
+	display: flex; /* Use flexbox for layout */
+	flex-wrap: wrap;
+	flex-direction: row; /* Arrange children side by side */
+	gap: 20px; /* Add spacing between items */
 	min-height: 200px;
+	align-items: flex-start; /* Align items at the top */
+}
+
+.status-section {
+	display: flex;
+	flex: 1 1;
+	flex-direction: column; /* Stack contents vertically */
+	gap: 10px; /* Add spacing between elements inside this section */
+	min-width: 300px;
 }
 
 .status-box .status-details {
 	margin-bottom: 10px;
+}
+
+.status-image {
+	flex: 1 1;
+	/*flex-shrink: 0*/
+}
+
+.status-image img {
+	width: 500px;
+	height: 500px;
+	object-fit: contain;
 }
 
 button {

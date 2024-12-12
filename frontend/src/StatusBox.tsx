@@ -54,52 +54,52 @@ export default function StatusBox() {
 	const progressPercentage = (status.progress * 100).toFixed(2);
 	const etaSeconds = (status.eta_relative).toFixed(1);
 
-	return (
+	return ( // TODO: flex-direction: columns and join under div for left side
 		<div className="status-box">
-			<h2>Status</h2>
-			<div className="status-details">
-				<strong>Progress:</strong> {progressPercentage}% <br />
-				<strong>ETA:</strong> {etaSeconds} seconds <br />
-			</div>
-			<div>
-				<button
-					onClick={() => setShowRaw((prev) => !prev)}
-					style={{
-						padding: "5px 10px",
-						backgroundColor: "#007BFF",
-						color: "#fff",
-						border: "none",
-						borderRadius: "3px",
-						cursor: "pointer",
-						marginBottom: "10px",
-					}}
-				>
-				{showRaw ? "Hide Raw JSON" : "Show Raw JSON"}
-				</button>
-			</div>
-			{showRaw && (
-				<pre
-					style={{
-						padding: "10px",
-						borderRadius: "5px",
-						overflow: "auto",
-						maxHeight: "300px",
-						wordWrap: "break-word",
-						border: "1px solid #ccc"
-					}}
-				>
-				{JSON.stringify(status, null, 2)}
-				</pre>
-			)}
-			<div style={{ flexShrink: 0 }}>
-				<h3>Current Image:</h3>
-				{status.current_image && (
-					<img 
-						src={`data:image/png;base64,${status.current_image}`} 
-						alt="Current generated image"
-						style={{ width: '500px', height: '500px', objectFit: 'contain' }} 
-					/>
+  			<div className="status-section">
+				<h2>Status</h2>
+				
+				<div className="status-details">
+					<strong>Progress:</strong> {progressPercentage}% <br />
+					<strong>ETA:</strong> {etaSeconds} seconds <br />
+				</div>
+				<div>
+					<button
+						onClick={() => setShowRaw((prev) => !prev)}
+						style={{
+							padding: "5px 10px",
+							backgroundColor: "#007BFF",
+							color: "#fff",
+							border: "none",
+							borderRadius: "3px",
+							cursor: "pointer",
+							marginBottom: "10px",
+						}}
+					>
+					{showRaw ? "Hide Raw JSON" : "Show Raw JSON"}
+					</button>
+				</div>
+				{showRaw && (
+					<pre
+						style={{
+							padding: "10px",
+							borderRadius: "5px",
+							overflow: "auto",
+							maxHeight: "300px",
+							wordWrap: "break-word",
+							border: "1px solid #ccc"
+						}}
+					>
+					{JSON.stringify(status, null, 2)}
+					</pre>
 				)}
+			</div>
+			<div className="status-image">
+				<h3>Current Image:</h3>
+				<img 
+					src={`data:image/png;base64,${status.current_image}`} 
+					alt="Current generated image"
+				/>
 			</div>
 		</div>
 	);

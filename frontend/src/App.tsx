@@ -24,7 +24,7 @@ export default function App() {
 		{/* Top row: Queue and Submission */}
 		<div className="main-container">
 			<QueueList queue={queue} setQueue={setQueue} refreshQueue={refreshQueue} />
-			<SubmitPrompt addToQueue={addToQueue} />
+			<SubmitPrompt queue={queue} addToQueue={addToQueue} />
 		</div>
 
 		{/* Bottom row: Status Box */}

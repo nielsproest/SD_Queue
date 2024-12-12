@@ -30,6 +30,11 @@ var (
 	api_progress = "/sdapi/v1/progress"
 )
 
+type ConfigItem struct {
+	ID   int    `db:"id" json:"id"`
+	Data string `db:"data" json:"data"`
+}
+
 func ProcessQueue2() {
 	queu := []QueueItem{}
 	err := db.Select(&queu, "SELECT * FROM stable_diffusion_queue WHERE status='pending'")
@@ -73,7 +78,8 @@ func handleGen(item QueueItem) error {
 		return fmt.Errorf("error marshaling JSON: %v", err)
 	}
 
-	for i := range batches {
+	for i := range item.BatchSize {
+		// TODO: Mark as submitted to survive restarts?
 		_, err := http.Post(sd_url+api_txt2img, "application/json", bytes.NewBuffer(jsonData))
 		if err != nil {
 			return fmt.Errorf("error unmarshaling JSON %d: %v", i, err)
@@ -93,35 +99,47 @@ func handleGen(item QueueItem) error {
 }
 
 func handleConfig(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	switch r.Method {
+	case http.MethodPost:
+		bytedata, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Read error", http.StatusInternalServerError)
+			log.Printf("read error %v\n", err)
+			return
+		}
+
+		// Use a query to either insert or update the single row
+		query := `
+			INSERT INTO stable_diffusion_config (id, data)
+			VALUES (1, $1)
+			ON CONFLICT (id)
+			DO UPDATE SET data = EXCLUDED.data
+		`
+
+		// Execute the query
+		_, err = db.Exec(query, string(bytedata))
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			log.Printf("database error %v\n", err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	case http.MethodGet:
+		var item ConfigItem
+
+		err := db.Get(&item, "SELECT * FROM stable_diffusion_config")
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			log.Printf("database error %v\n", err)
+			return
+		}
+
+		json.NewEncoder(w).Encode(item)
+	default:
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
-
-	bytedata, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Read error", http.StatusInternalServerError)
-		log.Printf("read error %v\n", err)
-		return
-	}
-
-	// Use a query to either insert or update the single row
-	query := `
-		INSERT INTO stable_diffusion_config (id, data)
-		VALUES (1, $1)
-		ON CONFLICT (id)
-		DO UPDATE SET data = EXCLUDED.data
-	`
-
-	// Execute the query
-	_, err = db.Exec(query, string(bytedata))
-	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
-		log.Printf("database error %v\n", err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func handleStatus(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +167,12 @@ func handleQueue(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err := db.Get(&item, "INSERT INTO stable_diffusion_queue (prompt) VALUES ($1) RETURNING *", item.Prompt)
+		if item.BatchSize > batches {
+			log.Printf("WARNING: Batch size was bigger than allowed, clamping...")
+			item.BatchSize = batches
+		}
+
+		err := db.Get(&item, "INSERT INTO stable_diffusion_queue (prompt, batch_size) VALUES ($1, $2) RETURNING *", item.Prompt, item.BatchSize)
 		if err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			log.Printf("Database error %v\n", err)
@@ -159,7 +182,7 @@ func handleQueue(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Add to queue... %v\n", item.ID)
 		queue <- item
 
-		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(item)
 	case http.MethodGet:
 		queue := []QueueItem{}
 		err := db.Select(&queue, "SELECT * FROM stable_diffusion_queue")

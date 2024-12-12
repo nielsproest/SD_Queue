@@ -12,3 +12,7 @@ frontend:
 run:
 	@echo "Running the Go backend..."
 	go run .
+
+build: frontend
+	@echo "Compiling..."
+	go build

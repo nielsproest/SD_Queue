@@ -19,6 +19,7 @@ type QueueItem struct {
 	Prompt    string         `db:"prompt" json:"prompt"`
 	Status    string         `db:"status" json:"status"`
 	ResultURL sql.NullString `db:"result_url" json:"result_url"`
+	BatchSize int            `db:"batch_size" json:"batch_size"`
 	CreatedAt time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
 }
@@ -34,6 +35,9 @@ var (
 
 //go:embed frontend/build/*
 var frontend embed.FS
+
+//go:embed migrations/*
+var migrations embed.FS
 
 func main() {
 	if mp := os.Getenv("PORT"); mp != "" {
@@ -60,7 +64,8 @@ func main() {
 
 func Bootstrap() {
 	// TODO: Migration
-	c, err := os.ReadFile("schema.sql")
+	subFS, _ := fs.Sub(migrations, "migrations")
+	c, err := fs.ReadFile(subFS, "2_batches.sql")
 	if err != nil {
 		log.Fatal(err)
 	}
