@@ -91,9 +91,9 @@ func RegRoutes() {
 	http.Handle("/", http.FileServer(http.FS(subFS)))
 
 	// Listen
-	log.Printf("Listening " + port + "...")
+	log.Printf("Listening " + port + "...\n")
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
-		log.Fatalf("Failed to open port " + port)
+		log.Fatalf("Failed to open port " + port + "\n")
 	}
 }

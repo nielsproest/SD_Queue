@@ -57,7 +57,7 @@ func ProcessQueue2() {
 }
 
 func handleGen(item QueueItem) error {
-	fmt.Printf("Submitting image...\n")
+	log.Printf("Submitting image...\n")
 	config := make(map[string]interface{})
 
 	var jsonData []byte
@@ -93,8 +93,8 @@ func handleGen(item QueueItem) error {
 
 	item.Status = "done"
 	//item.ResultURL = resp.Body.Json()["url"]
-	//fmt.Printf("Response: %v\n", string(jsonData))
-	fmt.Printf("Done!\n")
+	//log.Printf("Response: %v\n", string(jsonData))
+	log.Printf("Done!\n")
 	return updateQueueItem(item)
 }
 
@@ -152,7 +152,7 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		http.Error(w, "Failed to copy response body", http.StatusInternalServerError)
-		log.Printf("error copying response body: %v", err)
+		log.Printf("error copying response body: %v\n", err)
 		return
 	}
 }
@@ -168,7 +168,7 @@ func handleQueue(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if item.BatchSize > batches {
-			log.Printf("WARNING: Batch size was bigger than allowed, clamping...")
+			log.Printf("WARNING: Batch size was bigger than allowed (%d > %d), clamping...\n", item.BatchSize, batches)
 			item.BatchSize = batches
 		}
 
