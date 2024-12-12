@@ -61,6 +61,7 @@ export default function QueueList({ queue, setQueue, refreshQueue }) {
 							<th>Status</th>
 							<th>Result URL</th>
 							<th>Created At</th>
+							<th>Batch Size</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -71,6 +72,7 @@ export default function QueueList({ queue, setQueue, refreshQueue }) {
 								<td>{item.status}</td>
 								<td>{item.result_url ? <a href={item.result_url}>View</a> : "N/A"}</td>
 								<td>{new Date(item.created_at).toLocaleString()}</td>
+								<td>{item.batch_size}</td>
 							</tr>
 						))}
 					</tbody>
