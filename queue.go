@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 
@@ -46,8 +45,8 @@ func ProcessQueue2() {
 		return
 	}
 
-	queu := []QueueItem{}
-	err = db.Select(&queu, "SELECT * FROM stable_diffusion_queue WHERE status='pending'")
+	current_pool := []QueueItem{}
+	err = db.Select(&current_pool, "SELECT * FROM stable_diffusion_queue WHERE status='pending'")
 	// TODO: Status should be enum
 
 	if err != nil {
@@ -55,7 +54,7 @@ func ProcessQueue2() {
 		return
 	}
 
-	for _, item := range queu {
+	for _, item := range current_pool {
 		queue <- item
 	}
 
@@ -63,12 +62,11 @@ func ProcessQueue2() {
 		updateQueueItem(job.WithStatus("processing"))
 
 		if err := handleGen(job); err != nil {
-			log.Printf("Generation error %v\n", err)
 			updateQueueItem(job.WithStatus("pending"))
-			os.Exit(1)
+			log.Fatalf("Generation error %v\n", err)
 		} else {
-			log.Printf("Done!\n")
 			updateQueueItem(job.WithStatus("done"))
+			log.Printf("Done!\n")
 		}
 	}
 }
@@ -84,7 +82,7 @@ func handleGen(item QueueItem) error {
 	}
 
 	// Unmarshal into map
-	if err = json.Unmarshal(jsonData, &config); err != nil {
+	if err = json.Unmarshal(jsonData, &config); err != nil || config == nil {
 		return fmt.Errorf("error unmarshaling JSON: %v", err)
 	}
 
