@@ -7,6 +7,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -58,8 +60,15 @@ func ProcessQueue2() {
 	}
 
 	for job := range queue {
+		updateQueueItem(job.WithStatus("processing"))
+
 		if err := handleGen(job); err != nil {
 			log.Printf("Generation error %v\n", err)
+			updateQueueItem(job.WithStatus("pending"))
+			os.Exit(1)
+		} else {
+			log.Printf("Done!\n")
+			updateQueueItem(job.WithStatus("done"))
 		}
 	}
 }
@@ -87,22 +96,12 @@ func handleGen(item QueueItem) error {
 		return fmt.Errorf("error marshaling JSON: %v", err)
 	}
 
-	item.Status = "processing"
-	err = updateQueueItem(item)
-	if err != nil {
-		return err
-	}
-
 	_, err = http.Post(sd_url+api_txt2img, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("error unmarshaling JSON: %v", err)
 	}
 
-	item.Status = "done"
-	//item.ResultURL = resp.Body.Json()["url"]
-	//log.Printf("Response: %v\n", string(jsonData))
-	log.Printf("Done!\n")
-	return updateQueueItem(item)
+	return nil
 }
 
 func handleConfig(w http.ResponseWriter, r *http.Request) {
@@ -116,12 +115,14 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Use a query to either insert or update the single row
-		query := `
-			INSERT INTO stable_diffusion_config (id, data)
-			VALUES (1, $1)
-			ON CONFLICT (id)
-			DO UPDATE SET data = EXCLUDED.data
-		`
+		query := `REPLACE INTO stable_diffusion_config (id, data) VALUES (0, ?)`
+
+		// TODO: This is a bad validation hack, do better
+		if len(bytedata) < 10 {
+			http.Error(w, "Too small", http.StatusBadRequest)
+			log.Printf("Too small %v\n", err)
+			return
+		}
 
 		// Execute the query
 		_, err = db.Exec(query, string(bytedata))
@@ -142,7 +143,14 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		json.NewEncoder(w).Encode(item)
+		var citem any
+		if err := json.NewDecoder(strings.NewReader(item.Data)).Decode(&citem); err != nil {
+			http.Error(w, "Invalid input", http.StatusBadRequest)
+			log.Printf("Database error %v\n", err)
+			return
+		}
+
+		json.NewEncoder(w).Encode(citem)
 	default:
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return

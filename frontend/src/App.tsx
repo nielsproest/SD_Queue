@@ -4,6 +4,7 @@ import SubmitPrompt from "./SubmitPrompt";
 import StatusBox from "./StatusBox";
 import axios from "axios";
 import './App.css';
+import ConfigBox from "./ConfigBox";
 
 export default function App() {
 	const [queue, setQueue] = useState([]);
@@ -29,6 +30,7 @@ export default function App() {
 
 		{/* Bottom row: Status Box */}
 		<StatusBox />
+		<ConfigBox />
 	</div>
 	);
 }

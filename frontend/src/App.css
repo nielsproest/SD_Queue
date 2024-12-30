@@ -114,6 +114,7 @@ button:hover {
 	max-height: 300px;
 	word-wrap: break-word;
 	border: 1px solid #ccc;
+	white-space: break-spaces;
 }
 
 .raw-json.visible {

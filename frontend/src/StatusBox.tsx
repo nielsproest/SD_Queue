@@ -80,7 +80,7 @@ export default function StatusBox() {
 					</button>
 				</div>
 				<pre className={`raw-json ${showRaw ? "visible" : "hidden"}`}>
-					{JSON.stringify(status, null, 2)}
+					{JSON.stringify(status, null, "\t")}
 				</pre>
 			</div>
 			<div className="status-image">

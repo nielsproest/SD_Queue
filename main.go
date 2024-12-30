@@ -24,6 +24,11 @@ type QueueItem struct {
 	UpdatedAt  time.Time      `db:"updated_at" json:"updated_at"`
 }
 
+func (q QueueItem) WithStatus(newStatus string) QueueItem {
+	q.Status = newStatus
+	return q
+}
+
 var (
 	db *sqlx.DB
 
