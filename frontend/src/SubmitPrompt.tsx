@@ -5,11 +5,12 @@ import './App.css';
 export default function SubmitPrompt({ queue, addToQueue }) {
 	const [prompt, setPrompt] = useState("");
 	const [initialized, setInitialized] = useState(false); // Guard flag
-	const [batchCount, setBatchCount] = useState("1");
+	const [batchCount, setBatchCount] = useState(1);
+	const [syscfg, setSysCfg] = useState({batches: 1})
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		axios.post("/queue", { prompt, batch_count: Number(batchCount) })
+		axios.post("/queue", { prompt, batch_count: batchCount })
 			.then(() => {
 				addToQueue({prompt: prompt});
 				//setPrompt("");
@@ -27,7 +28,13 @@ export default function SubmitPrompt({ queue, addToQueue }) {
 			setBatchCount(lastPrompt.batch_count); // Use the latest prompt
 			setInitialized(true); // Prevent further auto-fills
 		}
-	}, [queue, initialized]); // Dependency array
+	}, [queue]); 
+
+	useEffect(() => {
+		axios.get("/sysconfig").then((response) => {
+			setSysCfg(response.data);
+		});
+	}, []);
 
 	return (
 		<div className="submit-prompt">
@@ -46,12 +53,13 @@ export default function SubmitPrompt({ queue, addToQueue }) {
 						name="batch_count"
 						id="batch_count"
 						value={batchCount}
-						onChange={(e) => setBatchCount(e.target.value)}
+						onChange={(e) => setBatchCount(Number(e.target.value))}
 					>
-						<option value="1">1</option>
-						<option value="2">2</option>
-						<option value="3">3</option>
-						<option value="4">4</option>
+						{syscfg.batches &&
+							Array.from({ length: syscfg.batches }, (_, index) => (
+								<option key={index + 1} value={index + 1}>{index + 1}</option>
+							))
+						}
 					</select>
 				</div>
 				<button type="submit">Submit</button>

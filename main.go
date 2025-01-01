@@ -29,13 +29,17 @@ func (q QueueItem) WithStatus(newStatus string) QueueItem {
 	return q
 }
 
+type SysConfig struct {
+	Batches int `json:"batches"`
+}
+
 var (
 	db *sqlx.DB
 
 	sd_url = "http://127.0.0.1:7860"
 	port   = "8321"
 
-	batches = 1
+	cfg SysConfig
 )
 
 //go:embed frontend/build/*
@@ -52,7 +56,7 @@ func main() {
 		sd_url = mp
 	}
 	if mp := os.Getenv("BATCH_COUNT"); mp != "" {
-		batches, _ = strconv.Atoi(mp)
+		cfg.Batches, _ = strconv.Atoi(mp)
 	}
 
 	var err error
@@ -86,6 +90,7 @@ func RegRoutes() {
 	// API Routes
 	http.HandleFunc("/queue", handleQueue)
 	http.HandleFunc("/config", handleConfig)
+	http.HandleFunc("/sysconfig", handleSysConfig)
 	http.HandleFunc("/status", handleStatus)
 
 	// WebSocket route

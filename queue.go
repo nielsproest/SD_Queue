@@ -102,6 +102,16 @@ func handleGen(item QueueItem) error {
 	return nil
 }
 
+func handleSysConfig(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid method", http.StatusBadRequest)
+		log.Printf("Invalid method\n")
+		return
+	}
+
+	json.NewEncoder(w).Encode(cfg)
+}
+
 func handleConfig(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
@@ -156,6 +166,12 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid method", http.StatusBadRequest)
+		log.Printf("Invalid method\n")
+		return
+	}
+
 	resp, err := http.Get(sd_url + api_progress)
 	if err != nil {
 		http.Error(w, "Fetching status error", http.StatusInternalServerError)
@@ -180,12 +196,12 @@ func handleQueue(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if item.BatchCount > batches {
-			log.Printf("WARNING: Batch count was bigger than allowed (%d > %d), clamping...\n", item.BatchCount, batches)
-			item.BatchCount = batches
+		if item.BatchCount > cfg.Batches {
+			log.Printf("WARNING: Batch count was bigger than allowed (%d > %d), clamping...\n", item.BatchCount, cfg.Batches)
+			item.BatchCount = cfg.Batches
 		}
 
-		err := db.Get(&item, "INSERT INTO stable_diffusion_queue (prompt, batch_count) VALUES ($1, $2) RETURNING *", item.Prompt, item.BatchCount)
+		err := db.Get(&item, "INSERT INTO stable_diffusion_queue (prompt, batch_count) VALUES (?, ?) RETURNING *", item.Prompt, item.BatchCount)
 		if err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			log.Printf("Database error %v\n", err)
@@ -213,7 +229,7 @@ func handleQueue(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, err := db.Exec("DELETE FROM stable_diffusion_queue WHERE id = $1", item.ID)
+		_, err := db.Exec("DELETE FROM stable_diffusion_queue WHERE id = ?", item.ID)
 		if err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			log.Printf("Database error %v\n", err)
@@ -269,7 +285,7 @@ func broadcastUpdate(update QueueItem) {
 }
 
 func updateQueueItem(item QueueItem) error {
-	_, err := db.Exec("UPDATE stable_diffusion_queue SET status = $1, result_url = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3", item.Status, item.ResultURL, item.ID)
+	_, err := db.Exec("UPDATE stable_diffusion_queue SET status = ?, result_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", item.Status, item.ResultURL, item.ID)
 	if err != nil {
 		return fmt.Errorf("database error %v", err)
 	}
