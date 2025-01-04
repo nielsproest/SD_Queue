@@ -38,6 +38,7 @@ var (
 
 	sd_url = "http://127.0.0.1:7860"
 	port   = "8321"
+	ip     = "127.0.0.1"
 
 	cfg SysConfig
 )
@@ -57,6 +58,9 @@ func main() {
 	}
 	if mp := os.Getenv("BATCH_COUNT"); mp != "" {
 		cfg.Batches, _ = strconv.Atoi(mp)
+	}
+	if mp := os.Getenv("HOST"); mp != "" {
+		ip = mp
 	}
 
 	var err error
@@ -102,7 +106,7 @@ func RegRoutes() {
 
 	// Listen
 	log.Printf("Listening " + port + "...\n")
-	err := http.ListenAndServe(":"+port, nil)
+	err := http.ListenAndServe(ip+":"+port, nil)
 	if err != nil {
 		log.Fatalf("Failed to open port " + port + "\n")
 	}
